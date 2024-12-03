@@ -8,9 +8,7 @@ import {
 
 function LiveCaptionModal() {
   const [isListening, setIsListening] = useState(false);
-  const [transcription, setTranscription] = useState(
-    "Waiting for transcription..."
-  );
+  const [transcription, setTranscription] = useState("Click the button");
 
   const toggleListening = () => {
     if (isListening) {

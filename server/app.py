@@ -1,30 +1,43 @@
+import pyaudio
+import speech_recognition as sr
+import threading
 from flask import Flask, jsonify
 from flask_cors import CORS
-import threading
-import speech_recognition as sr
-import pyaudio
 
 app = Flask(__name__)
 CORS(app)
+# Initialize Speech Recognition
+recognizer = sr.Recognizer()
 
+# Start and stop transcribing flags
 transcribing = False
 transcription_result = ""
 
+# Initialize the microphone (update with correct device index for the virtual microphone)
+device_index = 1  # Update this based on the virtual audio cable device
+mic = sr.Microphone(device_index=device_index)
 
+
+# Function to transcribe system audio
 def transcribe_system_audio():
     global transcribing, transcription_result
-    recognizer = sr.Recognizer()
-    with sr.AudioFile(
-        "VB-Audio Output"
-    ) as source:  # Replace with your system audio source
+    with mic as source:
+        print("Adjusting for ambient noise...")
+        recognizer.adjust_for_ambient_noise(
+            source, duration=1
+        )  # Adjust for ambient noise for 1 second
+        recognizer.energy_threshold = (
+            300  # Lower threshold to make the recognizer more sensitive
+        )
+        print("Listening for system sounds...")
         while transcribing:
             try:
-                print("Listening to system sounds...")
-                audio = recognizer.record(
-                    source, duration=5
-                )  # Capture 5 seconds of audio
+                audio = recognizer.listen(
+                    source, timeout=10
+                )  # Increase timeout to 10 seconds
+                print("Processing audio...")
                 text = recognizer.recognize_google(audio)
-                transcription_result += text + "\n"
+                transcription_result += text + " "
                 print(f"Transcribed: {text}")
             except sr.UnknownValueError:
                 print("Could not understand the audio.")
@@ -32,6 +45,7 @@ def transcribe_system_audio():
                 print(f"Error: {e}")
 
 
+# Start transcription route
 @app.route("/start", methods=["GET"])
 def start_transcription():
     global transcribing
@@ -41,6 +55,7 @@ def start_transcription():
     return jsonify({"message": "Transcription started"})
 
 
+# Stop transcription route
 @app.route("/stop", methods=["GET"])
 def stop_transcription():
     global transcribing
