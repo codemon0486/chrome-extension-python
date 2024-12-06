@@ -59,9 +59,10 @@ def record_audio():
 def transcribe_audio():
     """Function to transcribe the recorded audio."""
     if os.path.exists(WAVE_OUTPUT_FILENAME):
+        print(os.path.exists(WAVE_OUTPUT_FILENAME))
         print("Transcribing audio...")
-        result = model.transcribe(WAVE_OUTPUT_FILENAME)
-        return result.get("text", "No transcription found")
+        result = model.transcribe(WAVE_OUTPUT_FILENAME, fp16=False)
+        return result["text"]
     return "No audio recorded."
 
 
@@ -84,7 +85,6 @@ def stop_transcription():
     if is_listening:
         is_listening = False
         audio_thread.join()  # Ensure the thread finishes
-        print({"console": "-----------------------"})
         transcription = transcribe_audio()
         return jsonify({"status": "stopped", "transcription": transcription})
     return jsonify({"status": "not_running"})

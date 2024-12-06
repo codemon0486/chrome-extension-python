@@ -15,7 +15,7 @@ function LiveCaptionModal() {
       // Stop transcription
       axios.get("http://127.0.0.1:5000/stop").then((res) => {
         setIsListening(false);
-        setTranscription(res.data.result);
+        setTranscription(res.data.transcription);
       });
     } else {
       // Start transcription
